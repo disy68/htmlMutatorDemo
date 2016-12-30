@@ -41,13 +41,13 @@ class FolderCleaner
             return;
         }
         foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
-            $newDirOnDest = $this->destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+            $newItemOnDest = $this->destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
             if ($item->isDir()) {
-                if (! file_exists($newDirOnDest)) {
-                    mkdir($newDirOnDest);
+                if (! file_exists($newItemOnDest)) {
+                    mkdir($newItemOnDest);
                 }
             } else {
-                copy($item, $newDirOnDest);
+                copy($item, $newItemOnDest);
             }
         }
     }
