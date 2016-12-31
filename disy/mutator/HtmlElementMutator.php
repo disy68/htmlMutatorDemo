@@ -2,6 +2,12 @@
 
 class HtmlElementMutator
 {
+    private static $sizeSeparator = '_';
+    private static $cliLineBreak = PHP_EOL;
+    private static $cliHorizontalBreak = PHP_EOL . '--- --- --- ---' . PHP_EOL;
+    private static $htmlLineBraek = '<br />';
+    private static $htmlHorizontalBreak = '<hr />';
+    
     private $lineBreak;
     private $horizontalBreak;
     private $iterator;
@@ -31,11 +37,11 @@ class HtmlElementMutator
     private function setBreaks($cliUsage)
     {
         if ($cliUsage) {
-            $this->lineBreak = "\n";
-            $this->horizontalBreak = "\n-----------\n";
+            $this->lineBreak = self::$cliLineBreak;
+            $this->horizontalBreak = self::$cliHorizontalBreak;
         } else {
-            $this->lineBreak = "<br />";
-            $this->horizontalBreak = "<hr />";
+            $this->lineBreak = self::$htmlLineBraek;
+            $this->horizontalBreak = self::$htmlHorizontalBreak;
         }
     }
 
@@ -66,18 +72,20 @@ class HtmlElementMutator
             
             echo 'old href: ' . $anchorHrefAttribute . $this->lineBreak;
             echo 'new href: ' . $newHref . $this->lineBreak;
+            
+            $this->renameCorrespondingImage($anchorHrefAttribute, $newHref);
         } else {
             echo 'href: n/a <br/>';
         }
     }
 
-    private function mutateFileName($oldNameWithExtension, $newNameWithoutExtension)
+    private function mutateFileName($oldNameWithExtension, $newNameWithoutExtension, $delimiter = '.')
     {
-        $nameParts = explode('.', $oldNameWithExtension);
+        $nameParts = explode($delimiter, $oldNameWithExtension);
         $size = count($nameParts);
         if ($size >= 2) {
             $extension = $nameParts[$size - 1];
-            return $newNameWithoutExtension . '.' . $extension;
+            return $newNameWithoutExtension . $delimiter . $extension;
         }
         return $oldNameWithExtension;
     }
@@ -87,6 +95,9 @@ class HtmlElementMutator
         $imageSrcAttribute = $imageNode->src;
         if (! is_null($imageSrcAttribute)) {
             $newSrc = $this->mutateFileName($imageSrcAttribute, $fileName);
+            if ($this->hasSizeInfo($imageSrcAttribute)) {
+                $newSrc = $this->mutateFileName($imageSrcAttribute, $fileName, self::$sizeSeparator);
+            }
             $imageNode->src = $newSrc;
             
             echo 'old src: ' . $imageSrcAttribute . $this->lineBreak;
@@ -95,6 +106,10 @@ class HtmlElementMutator
             echo 'src: n/a' . $this->lineBreak;
         }
         $this->renameCorrespondingImage($imageSrcAttribute, $newSrc);
+    }
+    
+    private function hasSizeInfo($fileName) {
+        return strpos($fileName, self::$sizeSeparator);
     }
     
     private function renameCorrespondingImage($oldImageName, $newImageName) {
